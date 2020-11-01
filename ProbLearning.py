@@ -42,7 +42,6 @@ def  ConditionalProb(class_lst, target_lst, class_value, target_value):
     
     str_output1 = str(total_class_value) + '/' + str(total_target_value)
     str_output2 = 'P(x = ' + str(class_value) + '| ' + str(target_value) + ')'
-    
     return (total_class_value/total_target_value, str_output1, str_output2)
 
 #new_object tuple(values, class_indexes)
@@ -64,35 +63,53 @@ def NaiveBayes(new_object, dataset, target_lst):
     
     output_lst = []
     bottom = 0
-    str_probs = ''
-    #iterate probabilities
+    str_condprobs = ''
+    
+    #iterate probabilities get values to divide top/bottom 
     for i in range( len(result_lst) ):
+        
+        #strings
         top = 1
-        str_top = '('
-        str_bottom = '/ (P('
+        str_top = 'P('+ str(target_values[i]) + '|'
+        str_bottom = '/ (P(' 
+        for j in range(len(i_object)):
+            str_bottom += 'x' + str(i_object[j]) + '=' + str(v_object[j]) + '+'
+            str_top += 'x' + str(i_object[j]) + '=' + str(v_object[j]) + ', '
+        str_top = str_top[:len(str_top)-2] + ') = ('
 
         #top part multiply
         for j in result_lst[i]:        
             v, s1, s2 = j
             top *= v
+            
+            #strings
             str_top += ' ' + str(s1) + ' X'
-            str_probs += s2 + '=' + str(v) + '\n'
+            str_condprobs += s2 + '=' + str(v) + '\n'
+        
         #bottom part sum
         bottom += top
-        for j in range(len(i_object)):
-            str_bottom += 'x' + str(i_object[j]) + '=' + str(v_object[j]) + '+'
-        
+
+        #output
         str_top = str_top[:len(str_top)-1] + ')'
         str_bottom = str_bottom[:len(str_bottom)-1] + '))'
         output_lst.append( [top, 0 , (str_top + str_bottom)] )
         
+    
     #when bottom is ready, insert it
     for out in output_lst:
         out[1] = bottom
         
-    print(str_probs)
-    for m in output_lst:
-        print(m)
+    #calculate naive bayes
+    bayes = []
+    str_output =  '******* Conditional Probabilities **********\n' + str_condprobs + '\n********** Naive Bayes ********** '
+    for n in output_lst:
+        naive = n[0]/n[1]
+        bayes.append(naive)
+        str_output += '\n' +  n[2] + '  =  ' + str(naive) 
+
+    return bayes, str_output
+
+
 def ConvertColumnToList(dataset, index):
     lst = []
     for i in range(len(dataset)):
@@ -107,4 +124,5 @@ dataset = genfromtxt(file_name, delimiter = ';')
 
 print(dataset)
 column_target = ConvertColumnToList(dataset, 3)
-NaiveBayes( ([0,1,0], [0,1,2]), dataset, column_target)
+b,s = NaiveBayes( ([0,1,0], [0,1,2]), dataset, column_target)
+print(s)
